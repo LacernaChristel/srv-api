@@ -1,78 +1,59 @@
 const express = require('express');
-const InventoryItemModel = require('../models/author');
+const mongoose = require('mongoose');
 
 const router = express.Router();
 
-// GET all authors
+const Schema = mongoose.Schema;
+const inventorySchema = new Schema({
+  name: { type: String, required: true },
+  quantity: { type: Number, required: true },
+  reorderPoint: { type: Number, required: true },
+});
+
+const Inventory = mongoose.model('Inventory', inventorySchema);
+
+// Get all inventory items
 router.get('/', async (req, res) => {
-    try {
-        const inventoryItems = await InventoryItemModel.find();
-        res.json(inventoryItems);
-    } catch (err) {
-        res.status(500).json({message: err.message});
-    }
+  try {
+    const items = await Inventory.find();
+    res.status(200).json(items);
+  } catch (error) {
+    res.status(500).json({ message: 'Error fetching inventory', error });
+  }
 });
 
-// GET a single author
-router.get('/:id', getInventoryItem, (req, res) => {
-    res.json(res.inventoryItem);
-});
-
-// CREATE an author
+// Add a new inventory item
 router.post('/', async (req, res) => {
-    try {
-        // Validate request body
-        const { name, quantity, reorderPoint } = req.body;
-        if(!name || !quantity || !reorderPoint) {
-            return res.status(400).json({message: 'Name, quantity, and reorder point are required'});
-        }
-
-        //check if the author's name already exists
-           const existingItem = await InventoryItemModel.findOne({ name });
-        if (existingItem) {
-            return res.status(400).json({ message: 'Item already exists' });
-        }
-        
-          const newItem = new InventoryItemModel({ name, quantity, reorderPoint }); // Updated model name
-        const savedItem = await newItem.save();
-        res.status(201).json({ message: 'Item created successfully', item: savedItem });
-    } catch (err) {
-        res.status(400).json({ message: err.message });
-    }
+  try {
+    const newItem = new Inventory(req.body);
+    await newItem.save();
+    res.status(201).json(newItem);
+  } catch (error) {
+    console.error('Error adding inventory item:', error);
+    res.status(500).json({ message: 'Error adding inventory item', error });
+  }
 });
 
-//UPDATE AN AUTHOR
-router.put('/:id', getInventoryItem, async (req, res) => {
-    try {
-        const updatedItem = await InventoryItemModel.findByIdAndUpdate(req.params.id, req.body, { new: true });
-        res.json(updatedItem);
-    } catch (err) {
-        res.status(400).json({ message: err.message });
-    }
+// Update an inventory item
+router.put('/:id', async (req, res) => {
+  try {
+    const updatedItem = await Inventory.findByIdAndUpdate(req.params.id, req.body, { new: true });
+    res.status(200).json(updatedItem);
+  } catch (error) {
+    console.error('Error updating inventory item:', error);
+    res.status(500).json({ message: 'Error updating inventory item', error });
+  }
 });
 
- //DELETE AN AUTHOR
- router.delete('/:id', getInventoryItem, async (req, res) => {
-    try {
-        await res.inventoryItem.deleteOne();
-        res.json({ message: 'Item deleted' });
-    } catch (err) {
-        res.status(500).json({ message: err.message });
-    }
+// Delete an inventory item
+router.delete('/:id', async (req, res) => {
+  try {
+    await Inventory.findByIdAndDelete(req.params.id);
+    res.status(200).json({ message: 'Item deleted successfully' });
+  } catch (error) {
+    console.error('Error deleting inventory item:', error);
+    res.status(500).json({ message: 'Error deleting inventory item', error });
+  }
 });
 
- //MIDDLEWARE FUNCTION TO GET SINGLE AUTHOR BY ID
- async function getInventoryItem(req, res, next) {
-    try {
-        const inventoryItem = await InventoryItemModel.findById(req.params.id); // Updated model name
-        if (!inventoryItem) {
-            return res.status(404).json({ message: 'Inventory item not found' });
-        }
-        res.inventoryItem = inventoryItem;
-        next();
-    } catch (err) {
-        res.status(500).json({ message: err.message });
-    }
-}
-
- module.exports = router;
+module.exports = router;
