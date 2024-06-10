@@ -10,7 +10,7 @@ const inventorySchema = new Schema({
         type: Number,
         required: true,
     },
-    reordorPoint: {
+    reorderPoint: {
         type: Number,
         required: true
     }
