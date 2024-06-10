@@ -6,7 +6,7 @@ const router = require('./routes/author');
 
 const app = express();
 const dbCloudUrl = 'mongodb+srv://lacernachristel:Lacerna_msc@cluster0.npzsm7i.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0';
-const dbLocalUrl = 'mongodb://localhost:27017/';
+const dbLocalUrl = 'mongodb://localhost:27017/test';
 
 app.use(cors());
 app.use(express.json());
